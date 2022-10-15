@@ -3,13 +3,14 @@ import sys
 sys.path.append("..")
 
 from typing import Optional
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, HTTPException, APIRouter, Request
 import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from .auth import get_current_user, get_user_exception
-
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(
     prefix="/todos",
@@ -17,6 +18,8 @@ router = APIRouter(
     responses={404: {'description': 'not found'}}
 )
 models.Base.metadata.create_all(bind=engine)
+
+templates = Jinja2Templates(directory="templates")
 
 
 def get_db():
@@ -36,6 +39,11 @@ class Todo(BaseModel):
         description="priority must be between 1-5"
     )
     complete: bool = Field(default=False)
+
+
+@router.get('/home')
+async def home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 @router.get("/")
