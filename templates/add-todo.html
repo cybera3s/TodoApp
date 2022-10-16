@@ -1,12 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+{% extends "_base.html" %}
 
-    <title>Add New Todo</title>
-</head>
-<body>
+{% block title %}Add New Todo{% endblock %}
 
-</body>
-</html>
+
+{% block content %}
+     <div class="container">
+         <div class="card">
+             <div class="card-header">
+                 Make a New Todo
+             </div>
+
+             <div class="card-body">
+                 <form>
+
+                     <div class="mb-3">
+                         <label for="title">Title</label>
+                         <input type="text" name="title" id="title" class="form-control"
+                            placeholder="Title Here..."
+                            required
+                         >
+                     </div>
+
+                     <div class="mb-3">
+                         <label for="description">Description</label>
+                         <textarea type="text" id="description" name="description"
+                           class="form-control"
+                           placeholder="Description Here..."
+                           required
+                         ></textarea>
+                     </div>
+
+                     <div class="mb-3">
+                         <label for="priority">Priority</label>
+                         
+                         <select class="form-select" aria-label="Default select example">
+                            <option selected>Select your Priority</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                         
+                     </div>
+
+                     <button type="submit" class="btn btn-primary">Add new Todo</button>
+                 </form>
+             </div>
+
+         </div>
+     </div>
+{% endblock %}
