@@ -13,11 +13,27 @@
              </div>
 
              <div class="card-body">
-                 <form>
+             <!--  Message Section         -->
+                 {% if msg %}
+
+                    {% if msg == 'Logout Successful' or msg == 'User successful created' %}
+                        <div class="alert alert-success">
+                            {{ msg }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            {{ msg }}
+                        </div>
+                    {% endif %}
+
+                 {% endif %}
+             <!--  end Message Section         -->
+
+                 <form method="post" action="/auth">
 
                      <div class="mb-3">
                          <label for="username">Username</label>
-                         <input type="text" name="username" id="username" class="form-control"
+                         <input type="text" name="email" id="username" class="form-control"
                             placeholder="Username Here..."
                             required
                          >
