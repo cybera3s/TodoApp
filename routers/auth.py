@@ -156,18 +156,23 @@ async def create_new_user(create_user: CreateUser, db: Session = Depends(get_db)
 
 
 @router.post("/token")
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
+async def login_for_access_token(response: Response, form_data: OAuth2PasswordRequestForm = Depends(),
                                  db: Session = Depends(get_db)):
     """
         authenticate a user with provided username and password
+        then set access token in cookies
+        :param response: Response object
+        :param form_data: form data object
         :param db: db session
     """
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
-        raise get_user_exception()
-    token_expires = timedelta(minutes=20)
+        return False
+    token_expires = timedelta(minutes=60)
     token = create_access_token(user.username, user.id, expires_delta=token_expires)
-    return {"token": token}
+
+    response.set_cookie(key="access_token", value=token, httponly=True)
+    return True
 
 
 @router.get("/", response_class=HTMLResponse)
