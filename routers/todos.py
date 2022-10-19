@@ -58,12 +58,29 @@ async def create_todo(request: Request, title: str = Form(...), description: str
     db.add(todo_model)
     db.commit()
 
-    return RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND )
+    return RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
 
 
 @router.get('/edit-todo/{todo_id}', response_class=HTMLResponse)
 async def edit_todo(request: Request, todo_id: int, db: Session = Depends(get_db)):
-    todo = db.query(models.Todos)\
+    todo = db.query(models.Todos) \
         .filter(models.Todos.id == todo_id).first()
 
     return templates.TemplateResponse('edit-todo.html', {'request': request, "todo": todo})
+
+
+@router.post("/edit-todo/{todo_id}", response_class=HTMLResponse)
+async def edit_todo_commit(request: Request, todo_id: int, title: str = Form(...), description: str = Form(...),
+                           priority: int = Form(...), db: Session = Depends(get_db)):
+    todo_model = db.query(models.Todos)\
+        .filter(models.Todos.id == todo_id)\
+        .first()
+
+    todo_model.title = title
+    todo_model.description = description
+    todo_model.priority = priority
+
+    db.add(todo_model)
+    db.commit()
+
+    return RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
