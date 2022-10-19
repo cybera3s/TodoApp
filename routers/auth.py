@@ -180,6 +180,29 @@ async def authentication_page(request: Request):
     return templates.TemplateResponse('login.html', {'request': request})
 
 
+@router.post('/', response_class=HTMLResponse)
+async def login(request: Request, db: Session = Depends(get_db)):
+    try:
+        form = Loginform(request)
+        await form.create_oauth_form()
+        response = RedirectResponse(url="/todos", status_code=status.HTTP_302_FOUND)
+
+        validate_user_cookie = await login_for_access_token(response=response, form_data=form, db=db)
+
+
+        if not validate_user_cookie:
+            msg = "Incorrect Username or Password!"
+            return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
+
+        return response
+
+    except HTTPException:
+        msg = "Unknown Error"
+        return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
+
+
+
+
 @router.get("/register", response_class=HTMLResponse)
 async def register(request: Request):
     return templates.TemplateResponse('register.html', {'request': request})
