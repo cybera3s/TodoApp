@@ -17,6 +17,7 @@
                          <label for="title">Title</label>
                          <input type="text" name="title" id="title" class="form-control"
                             placeholder="Title Here..."
+                            value="{{ todo.title }}"
                             required
                          >
                      </div>
@@ -27,19 +28,19 @@
                            class="form-control"
                            placeholder="Description Here..."
                            required
-                         ></textarea>
+                         >{{ todo.description }}</textarea>
                      </div>
 
                      <div class="mb-3">
                          <label for="priority">Priority</label>
                          
                          <select class="form-select" aria-label="Default select example">
-                            <option selected>Select your Priority</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
+                            <option>Select your Priority</option>
+                            <option {% if todo.priority == 1 %}selected{% endif %}>1</option>
+                            <option {% if todo.priority == 2 %}selected{% endif %}>2</option>
+                            <option {% if todo.priority == 3 %}selected{% endif %}>3</option>
+                            <option {% if todo.priority == 4 %}selected{% endif %}>4</option>
+                            <option {% if todo.priority == 5 %}selected{% endif %}>5</option>
                         </select>
                          
                      </div>
