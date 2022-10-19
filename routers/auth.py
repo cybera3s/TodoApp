@@ -2,7 +2,8 @@ import sys
 
 sys.path.append("..")
 
-from fastapi import Depends, HTTPException, status, APIRouter, Request
+from starlette.responses import RedirectResponse
+from fastapi import Depends, HTTPException, status, APIRouter, Request, Response
 from pydantic import BaseModel
 from typing import Optional
 import models
@@ -42,6 +43,18 @@ router = APIRouter(
     tags=['auth'],
     responses={401: {"user": "Not Authorized"}}
 )
+
+
+class Loginform:
+    def __init__(self, request: Request):
+        self.request = request
+        self.username: Optional[str] = None
+        self.password: Optional[str] = None
+
+    async def create_oauth_form(self):
+        form = await self.request.form()
+        self.username = form.get("email")
+        self.password = form.get("password")
 
 
 def get_db():
