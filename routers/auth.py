@@ -126,7 +126,7 @@ async def get_current_user(request: Request):
             "username": username, "id": user_id
         }
     except JWTError:
-        raise get_user_exception()
+        raise HTTPException(status_code=404, detail='Not Found')
 
 
 @router.post("/token")

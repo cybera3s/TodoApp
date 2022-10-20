@@ -7,7 +7,7 @@ from fastapi import Depends, APIRouter
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from .auth import get_user_exception, get_current_user
+from .auth import get_current_user
 from database import SessionLocal, engine
 import models
 
@@ -19,6 +19,7 @@ router = APIRouter(
 
 
 def get_db():
+    db = None
     try:
         db = SessionLocal()
         yield db

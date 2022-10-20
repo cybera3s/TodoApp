@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 
 import models
 from database import engine, SessionLocal
-from .auth import get_current_user, get_user_exception, verify_password, get_password_hash
+from .auth import get_current_user, verify_password, get_password_hash
 
 router = APIRouter(
     prefix="/users",
