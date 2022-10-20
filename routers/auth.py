@@ -58,6 +58,7 @@ class Loginform:
 
 
 def get_db():
+    db = None
     try:
         db = SessionLocal()
         yield db
@@ -116,13 +117,20 @@ def create_access_token(username: str, user_id: int, expires_delta: Optional[tim
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORYTHM)
 
 
-async def get_current_user(token: str = Depends(oauth2_bearer)):
+async def get_current_user(request: Request):
     try:
+        token = request.cookies.get("access_token")
+
+        if token is None:
+            return None
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORYTHM])
         username: str = payload.get('sub')
         user_id: int = payload.get("id")
+
         if username is None or user_id is None:
-            raise get_user_exception()
+            return None
+
         return {
             "username": username, "id": user_id
         }
@@ -189,7 +197,6 @@ async def login(request: Request, db: Session = Depends(get_db)):
 
         validate_user_cookie = await login_for_access_token(response=response, form_data=form, db=db)
 
-
         if not validate_user_cookie:
             msg = "Incorrect Username or Password!"
             return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
@@ -199,8 +206,6 @@ async def login(request: Request, db: Session = Depends(get_db)):
     except HTTPException:
         msg = "Unknown Error"
         return templates.TemplateResponse("login.html", {"request": request, "msg": msg})
-
-
 
 
 @router.get("/register", response_class=HTMLResponse)
@@ -220,7 +225,7 @@ def get_user_exception():
 
 def token_exception():
     token_exception_response = HTTPException(
-        status=status.HTTP_401_UNAUTHORIZED,
+        status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Incorrect username or password",
         headers={"WWW-Authenticate": 'Bearer'}
     )
