@@ -2,7 +2,9 @@ import sys
 
 sys.path.append("..")
 
-from fastapi import APIRouter, Depends, HTTPException
+from starlette import status
+from starlette.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
 from passlib.context import CryptContext
@@ -10,6 +12,8 @@ from passlib.context import CryptContext
 import models
 from database import engine, SessionLocal
 from .auth import get_current_user, verify_password, get_password_hash
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(
     prefix="/users",
@@ -18,6 +22,7 @@ router = APIRouter(
 )
 
 models.Base.metadata.create_all(bind=engine)
+templates = Jinja2Templates(directory="templates")
 
 
 def get_db():
@@ -31,73 +36,53 @@ def get_db():
 
 class UserVerification(BaseModel):
     username: str
-    password: str
+    ol_password: str
     new_password: str
 
 
-@router.get("/")
-async def get_all_users(db: Session = Depends(get_db)):
-    """
-    returns all users
-    """
-    return db.query(models.Users).all()
+@router.get("/change-password", response_class=HTMLResponse)
+async def change_password(request: Request):
+    user = await get_current_user(request)
 
-
-@router.get("/{user_id}")
-async def get_user_by_path(user_id: int, db: Session = Depends(get_db)):
-    fetched_user = db.query(models.Users) \
-        .filter(models.Users.id == user_id) \
-        .first()
-    if fetched_user is not None:
-        return fetched_user
-
-    return "Invalid User ID"
-
-
-@router.get("/user/")
-async def get_user_by_query(user_id: int, db: Session = Depends(get_db)):
-    fetched_user = db.query(models.Users) \
-        .filter(models.Users.id == user_id) \
-        .first()
-
-    if fetched_user is not None:
-        return fetched_user
-    return "Invalid User ID"
-
-
-@router.put("/user/password")
-async def user_password_change(user_verification: UserVerification,
-                               user: dict = Depends(get_current_user),
-                               db: Session = Depends(get_db)):
     if user is None:
-        raise get_user_exception()
+        return RedirectResponse(url="/auth", status_code=status.HTTP_302_FOUND)
 
-    fetched_user = db.query(models.Users) \
-        .filter(models.Users.id == user.get('id')) \
-        .first()
+    context = {
+        'request': request,
+        'user': user
+    }
+
+    return templates.TemplateResponse('change_password.html', context)
+
+
+@router.post("/change-password")
+async def change_password_commit(request: Request,
+                                 username: str = Form(...),
+                                 old_password: str = Form(...),
+                                 new_password: str = Form(...),
+                                 db: Session = Depends(get_db)
+                                 ):
+    user = await get_current_user(request)
+
+    if user is None:
+        return RedirectResponse(url="/auth", status_code=status.HTTP_302_FOUND)
+
+    fetched_user = db.query(models.Users).filter(models.Users.id == user.get('id')).first()
+
+    msg = 'Invalid Username or Password!'
 
     if fetched_user is not None:
-        if user_verification.username == fetched_user.username and verify_password(
-                user_verification.password, fetched_user.hashed_password):
-            fetched_user.hashed_password = get_password_hash(user_verification.new_password)
+        if fetched_user.username == username and verify_password(old_password, fetched_user.hashed_password):
+            fetched_user.hashed_password = get_password_hash(new_password)
             db.commit()
-            return "Password changed successfully"
+            msg = 'Password Updated!'
 
-    return "Invalid user or request"
+    context = {
+        'request': request,
+        'user': user,
+        'msg': msg
+    }
+
+    return templates.TemplateResponse("change_password.html", context)
 
 
-@router.delete("/user")
-async def delete_user(user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
-    if user is None:
-        raise get_user_exception()
-
-    fetched_user = db.query(models.Users) \
-        .filter(models.Users.id == user.get('id')) \
-        .first()
-
-    if not fetched_user:
-        return "Invalid user or request"
-
-    db.delete(fetched_user)
-    db.commit()
-    return {"message": f"User with id {fetched_user.id} successfully deleted!"}
