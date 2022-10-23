@@ -34,12 +34,6 @@ def get_db():
         db.close()
 
 
-class UserVerification(BaseModel):
-    username: str
-    ol_password: str
-    new_password: str
-
-
 @router.get("/change-password", response_class=HTMLResponse)
 async def change_password(request: Request):
     user = await get_current_user(request)
@@ -84,5 +78,3 @@ async def change_password_commit(request: Request,
     }
 
     return templates.TemplateResponse("change_password.html", context)
-
-
