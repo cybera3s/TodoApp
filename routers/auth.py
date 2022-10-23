@@ -22,7 +22,6 @@ ALGORYTHM = 'HS256'
 
 templates = Jinja2Templates(directory="templates")
 
-
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated="auto")
 
 models.Base.metadata.create_all(bind=engine)
@@ -197,7 +196,6 @@ async def register_user(request: Request, email: str = Form(...),
                         username: str = Form(...), firstname: str = Form(...),
                         lastname: str = Form(...), password: str = Form(...),
                         password2: str = Form(...), db: Session = Depends(get_db)):
-
     # check if username and email already taken
     validation1 = db.query(models.Users).filter(models.Users.username == username).first()
     validation2 = db.query(models.Users).filter(models.Users.email == email).first()
@@ -227,4 +225,3 @@ async def register_user(request: Request, email: str = Form(...),
         "msg": msg
     }
     return templates.TemplateResponse("login.html", context)
-
